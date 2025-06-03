@@ -8,6 +8,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/joho/godotenv"
 )
 
@@ -22,20 +23,6 @@ func InitDB() *sql.DB {
 	host := os.Getenv("DB_HOST")
 	port := os.Getenv("DB_HOST_PORT")
 	dbname := os.Getenv("DB_DATABASE")
-
-	requiredEnvs := map[string]string{
-		"DB_USERNAME":  user,
-		"DB_PASSWORD":  pass,
-		"DB_HOST":      host,
-		"DB_HOST_PORT": port,
-		"DB_DATABASE":  dbname,
-	}
-
-	for key, val := range requiredEnvs {
-		if val == "" {
-			log.Fatalf("Missing required environment variable: %s", key)
-		}
-	}
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pass, host, port, dbname)
 
