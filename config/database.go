@@ -1,4 +1,59 @@
 package config
 
-func InitDB() {
+import (
+	"database/sql"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
+)
+
+func InitDB() *sql.DB {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	user := os.Getenv("DB_USERNAME")
+	pass := os.Getenv("DB_PASSWORD")
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_HOST_PORT")
+	dbname := os.Getenv("DB_DATABASE")
+
+	requiredEnvs := map[string]string{
+		"DB_USERNAME":  user,
+		"DB_PASSWORD":  pass,
+		"DB_HOST":      host,
+		"DB_HOST_PORT": port,
+		"DB_DATABASE":  dbname,
+	}
+
+	for key, val := range requiredEnvs {
+		if val == "" {
+			log.Fatalf("Missing required environment variable: %s", key)
+		}
+	}
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pass, host, port, dbname)
+
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatal("Gagal koneksi ke db", err)
+	}
+
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(25)
+	db.SetConnMaxLifetime(5 * time.Minute)
+
+	err = db.Ping()
+	if err != nil {
+		log.Fatal("Database tidak bisa diakses", err)
+	}
+
+	fmt.Println("✅ Database connected.")
+
+	return db
 }
