@@ -15,10 +15,6 @@ func InsertProduct() {
 	name, _ := reader.ReadString('\n')
 	name = strings.TrimSpace(name)
 
-	fmt.Print("Enter category ID: ")
-	categoryID, _ := reader.ReadString('\n')
-	categoryID = strings.TrimSpace(categoryID)
-
 	fmt.Print("Enter price: ")
 	price, _ := reader.ReadString('\n')
 	price = strings.TrimSpace(price)
@@ -27,15 +23,15 @@ func InsertProduct() {
 	stock, _ := reader.ReadString('\n')
 	stock = strings.TrimSpace(stock)
 
-	if name == "" || categoryID == "" || price == "" || stock == "" {
+	if name == "" || price == "" || stock == "" {
 		fmt.Println("All fields are required.")
 		return
 	}
 
-	_, err := config.DB.Exec(`
-		INSERT INTO item (name, category_id, price, stock)
-		VALUES (?, ?, ?, ?)`,
-		name, categoryID, price, stock,
+	_, err := config.InitDB().Exec(`
+		INSERT INTO item (name, price, stock)
+		VALUES (?, ?, ?)`,
+		name, price, stock,
 	)
 	if err != nil {
 		fmt.Println("Error inserting product:", err)
