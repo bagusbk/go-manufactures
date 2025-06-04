@@ -19,6 +19,7 @@ func showStaffMenu() {
 	fmt.Println("1. Insert Staff")
 	fmt.Println("2. View Staff")
 	fmt.Println("3. Delete Staff")
+	fmt.Println("4. Back to Main Menu")
 	fmt.Print("Choose an option: ")
 
 	input, _ := reader.ReadString('\n')
@@ -30,6 +31,8 @@ func showStaffMenu() {
 		handler.PrintAllStaff()
 	} else if input == "3" {
 		handler.DeleteStaff()
+	} else if input == "4" {
+		ShowMenu()
 	} else {
 		fmt.Println("Invalid input")
 	}
