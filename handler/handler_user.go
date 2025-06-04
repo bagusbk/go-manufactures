@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"manufactures/config"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -21,7 +22,7 @@ func InsertUser() {
 
 	// Check for duplicate email
 	var exists int
-	checkErr := config.InitDB().QueryRow("SELECT COUNT(*) FROM user WHERE email = ?", email).Scan(&exists)
+	checkErr := config.InitDB().QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", email).Scan(&exists)
 	if checkErr != nil {
 		fmt.Println("Error checking email:", checkErr)
 		return
@@ -31,18 +32,32 @@ func InsertUser() {
 		return
 	}
 
+	fmt.Print("Enter phone number: ")
+	phoneStr, _ := reader.ReadString('\n')
+	phoneStr = strings.TrimSpace(phoneStr)
+
 	fmt.Print("Enter address: ")
 	address, _ := reader.ReadString('\n')
 	address = strings.TrimSpace(address)
 
-	if fullName == "" || email == "" || address == "" {
+	if fullName == "" || email == "" || address == "" || phoneStr == "" {
 		fmt.Println("All fields are required.")
 		return
 	}
+	phoneRegex := `^\+?[0-9]{10,15}$` // regex for phone numbers, optional + and 10-15 digits
+	matched, err := regexp.MatchString(phoneRegex, phoneStr)
+	if err != nil {
+		fmt.Println("Error validating phone number format:", err)
+		return
+	}
+	if !matched {
+		fmt.Println("Invalid phone number format. Please enter a valid phone number (e.g., +1234567890).")
+		return
+	}
 
-	_, err := config.InitDB().Exec(`
-		INSERT INTO users (full_name, email, address)
-		VALUES (?, ?, ?)`,
+	_, err = config.InitDB().Exec(`
+		INSERT INTO users (full_name, email, address, phone_number)
+		VALUES (?, ?, ?, ?)`,
 		fullName, email, address,
 	)
 	if err != nil {
