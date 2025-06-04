@@ -3,6 +3,7 @@ package handler
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"manufactures/config"
 	"os"
 	"strconv"
@@ -86,5 +87,33 @@ func PrintProduct() {
 		}
 		fmt.Printf("ID: %d | Name: %s | Category: %s | Price: %.2f | Stock: %d\n",
 			id, name, category, price, stock)
+	}
+}
+func PrintMostSoldItemsReport() {
+	rows, err := config.InitDB().Query(`
+        SELECT i.item_id, i.name, SUM(oi.quantity) AS total_sold
+        FROM item i
+        JOIN order_items oi ON i.item_id = oi.item_id
+        JOIN orders o ON oi.order_id = o.order_id
+        JOIN payment p ON o.order_id = p.order_id
+        WHERE p.status = 'paid'  -- Hanya hitung pesanan yang sudah dibayar
+        GROUP BY i.item_id
+        ORDER BY total_sold DESC;
+    `)
+	if err != nil {
+		log.Fatal("Error retrieving most sold items:", err)
+	}
+	defer rows.Close()
+
+	fmt.Println("Most Sold Items Report:")
+	for rows.Next() {
+		var itemID int
+		var name string
+		var totalSold int
+		err := rows.Scan(&itemID, &name, &totalSold)
+		if err != nil {
+			log.Fatal("Error scanning row:", err)
+		}
+		fmt.Printf("Item ID: %d | Name: %s | Total Sold: %d\n", itemID, name, totalSold)
 	}
 }
