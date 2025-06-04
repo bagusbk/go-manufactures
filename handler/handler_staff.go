@@ -7,6 +7,7 @@ import (
 	"manufactures/config"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -187,7 +188,20 @@ func DeleteStaff() {
 	idStr, _ := reader.ReadString('\n')
 	idStr = strings.TrimSpace(idStr)
 
-	res, err := config.InitDB().Exec("DELETE FROM staff WHERE staff_id = ?", idStr)
+	staffIDToDelete, err := strconv.Atoi(idStr)
+	if err != nil {
+		fmt.Println("Invalid staff ID format.")
+		return
+	}
+
+	// Validasi tidak bisa menghapus diri sendiri
+	if staffIDToDelete == LoggedInStaff.StaffID {
+		fmt.Println("❌ You cannot delete your own account!")
+		return
+	}
+
+	// Melakukan penghapusan staff
+	res, err := config.InitDB().Exec("DELETE FROM staff WHERE staff_id = ?", staffIDToDelete)
 	if err != nil {
 		fmt.Println("Error deleting staff:", err)
 		return
