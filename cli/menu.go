@@ -39,9 +39,10 @@ func ShowMenu() {
 			fmt.Println("============================")
 			fmt.Println("1. Manage Products")
 			fmt.Println("2. Manage User")
-			fmt.Println("3. Order")
-			fmt.Println("4. Reports")
-			fmt.Println("5. Logout")
+			fmt.Println("3. Manage Staff") // ✅ Tambahan
+			fmt.Println("4. Order")
+			fmt.Println("5. Reports")
+			fmt.Println("6. Logout")
 			fmt.Print("Choose an option: ")
 
 			input, _ := reader.ReadString('\n')
@@ -52,10 +53,12 @@ func ShowMenu() {
 			} else if input == "2" {
 				showUserMenu()
 			} else if input == "3" {
-				showOrderMenu()
+				showStaffMenu() // ✅ Tambahan
 			} else if input == "4" {
-				showReportMenu()
+				showOrderMenu()
 			} else if input == "5" {
+				showReportMenu()
+			} else if input == "6" {
 				handler.LoggedInStaff.Email = ""
 				handler.LoggedInStaff.Position = ""
 				fmt.Println("Logged out.")
@@ -100,6 +103,33 @@ func showUserMenu() {
 		handler.InsertUser()
 	} else if input == "2" {
 		handler.PrintUser()
+	} else {
+		fmt.Println("Invalid input")
+	}
+}
+
+func showStaffMenu() {
+	if handler.LoggedInStaff.Position != "admin" {
+		fmt.Println("Unauthorized: Only admin can manage staff.")
+		return
+	}
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("-- Manage Staff --")
+	fmt.Println("1. Insert Staff")
+	fmt.Println("2. View Staff")
+	fmt.Println("3. Delete Staff")
+	fmt.Print("Choose an option: ")
+
+	input, _ := reader.ReadString('\n')
+	input = strings.TrimSpace(input)
+
+	if input == "1" {
+		handler.InsertStaff()
+	} else if input == "2" {
+		handler.PrintAllStaff()
+	} else if input == "3" {
+		handler.DeleteStaff()
 	} else {
 		fmt.Println("Invalid input")
 	}
