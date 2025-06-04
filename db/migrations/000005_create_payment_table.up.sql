@@ -6,6 +6,6 @@ CREATE TABLE payment (
     amount DECIMAL(12,2) NOT NULL,
     payment_method VARCHAR(50),
     status VARCHAR(30) DEFAULT 'pending',
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
-    FOREIGN KEY (order_id) REFERENCES orders(order_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (order_id) REFERENCES orders(order_id)
 );
