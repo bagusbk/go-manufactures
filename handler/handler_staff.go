@@ -10,7 +10,16 @@ import (
 	"go-manufactures/config"
 
 	_ "github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 )
+
+func hashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
+}
 
 var LoggedInStaff struct {
 	Email    string
@@ -80,15 +89,21 @@ func InsertStaff() {
 	password, _ := reader.ReadString('\n')
 	password = strings.TrimSpace(password)
 
+	hashedPassword, err := hashPassword(password)
+	if err != nil {
+		fmt.Println("Error hashing password:", err)
+		return
+	}
+
 	if fullName == "" || email == "" || password == "" {
 		fmt.Println("All fields are required.")
 		return
 	}
 
-	_, err := config.DB.Exec(`
+	_, err = config.DB.Exec(`
 		INSERT INTO staff (full_name, position, email, password_hash)
 		VALUES (?, ?, ?, ?)`,
-		fullName, position, email, password,
+		fullName, position, email, hashedPassword,
 	)
 	if err != nil {
 		fmt.Println("Error inserting staff:", err)
