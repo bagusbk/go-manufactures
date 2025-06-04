@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-type ItemReport struct {
+type Item struct {
 	ItemID int     `json:"item_id"`
 	Name   string  `json:"name"`
 	Stock  int     `json:"stock"`
@@ -64,31 +64,32 @@ func InsertProduct() {
 
 func PrintProduct() {
 	rows, err := config.InitDB().Query(`
-		SELECT i.item_id, i.name, c.name AS category, i.price, i.stock
-		FROM item i
-		LEFT JOIN category c ON i.category_id = c.category_id
+		SELECT item_id, name, stock, price FROM item
 	`)
 	if err != nil {
-		fmt.Println("Error retrieving products:", err)
+		fmt.Println("Error retrieving items:", err)
 		return
 	}
 	defer rows.Close()
 
-	fmt.Println("List of Products:")
+	var listProduct []Item
 	for rows.Next() {
-		var id int
-		var name, category string
-		var price float64
-		var stock int
-		err := rows.Scan(&id, &name, &category, &price, &stock)
+		var report Item
+		err := rows.Scan(&report.ItemID, &report.Name, &report.Stock, &report.Price)
 		if err != nil {
-			fmt.Println("Scan error:", err)
+			fmt.Println("Error scanning row:", err)
 			return
 		}
-		fmt.Printf("ID: %d | Name: %s | Category: %s | Price: %.2f | Stock: %d\n",
-			id, name, category, price, stock)
+		listProduct = append(listProduct, report)
+	}
+
+	fmt.Println("List of Products:")
+	for _, report := range listProduct {
+		fmt.Printf("ProductID: %d | Product Name: %s | Stock: %d | Price: %.2f\n",
+			report.ItemID, report.Name, report.Stock, report.Price)
 	}
 }
+
 func PrintMostSoldItemsReport() {
 	rows, err := config.InitDB().Query(`
         SELECT i.item_id, i.name, SUM(oi.quantity) AS total_sold
