@@ -16,6 +16,7 @@ func showOrderMenu() {
 	fmt.Println("4. View Order Items")
 	fmt.Println("5. Insert Payment")
 	fmt.Println("6. View Payments")
+	fmt.Println("7. Back to Main Menu")
 	fmt.Print("Choose an option: ")
 	reader := bufio.NewReader(os.Stdin)
 	input, _ := reader.ReadString('\n')
@@ -33,6 +34,8 @@ func showOrderMenu() {
 		handler.InsertPayment()
 	} else if input == "6" {
 		handler.PrintPayments()
+	} else if input == "7" {
+		ShowMenu()
 	} else {
 		fmt.Println("Invalid input")
 	}
