@@ -28,7 +28,7 @@ func InsertProduct() {
 		return
 	}
 
-	_, err := config.InitDB().Exec(`
+	_, err := config.DB.Exec(`
 		INSERT INTO item (name, price, stock)
 		VALUES (?, ?, ?)`,
 		name, price, stock,
