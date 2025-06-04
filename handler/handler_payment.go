@@ -19,6 +19,37 @@ type PaymentReport struct {
 	Status        string  `json:"status"`
 }
 
+// Handler untuk laporan pembayaran
+func PrintPaymentReport() {
+	rows, err := config.InitDB().Query(`
+		SELECT u.user_id, u.full_name, u.email, u.phone_number, p.amount, p.payment_date, p.payment_method, p.status
+		FROM payment p
+		JOIN users u ON p.user_id = u.user_id
+	`)
+	if err != nil {
+		fmt.Println("Error retrieving payments:", err)
+		return
+	}
+	defer rows.Close()
+
+	var reports []PaymentReport
+	for rows.Next() {
+		var report PaymentReport
+		err := rows.Scan(&report.UserID, &report.FullName, &report.Email, &report.PhoneNumber, &report.Amount, &report.PaymentDate, &report.PaymentMethod, &report.Status)
+		if err != nil {
+			fmt.Println("Error scanning row:", err)
+			return
+		}
+		reports = append(reports, report)
+	}
+
+	fmt.Println("Payment Report:")
+	for _, report := range reports {
+		fmt.Printf("UserID: %d | FullName: %s | Email: %s | Amount: %.2f | PaymentDate: %s | PaymentMethod: %s | Status: %s\n",
+			report.UserID, report.FullName, report.Email, report.Amount, report.PaymentDate, report.PaymentMethod, report.Status)
+	}
+}
+
 func CreatePayment() {
 	// Gunakan koneksi yang sudah ada
 	db := config.InitDB() // Hanya tangkap db tanpa error
