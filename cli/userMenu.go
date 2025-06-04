@@ -1,0 +1,31 @@
+package cli
+
+import (
+	"bufio"
+	"fmt"
+	"go-manufactures/handler"
+	"os"
+	"strings"
+)
+
+func showUserMenu() {
+	if handler.LoggedInStaff.Position != "admin" {
+		fmt.Println("Unauthorized: Only admin can manage users.")
+		return
+	}
+
+	fmt.Println("-- Manage Users --")
+	fmt.Println("1. Insert User")
+	fmt.Println("2. View Users")
+	fmt.Print("Choose an option: ")
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	input = strings.TrimSpace(input)
+	if input == "1" {
+		handler.InsertUser()
+	} else if input == "2" {
+		handler.PrintUser()
+	} else {
+		fmt.Println("Invalid input")
+	}
+}
