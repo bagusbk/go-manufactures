@@ -16,9 +16,9 @@ func showReportMenu() {
 	}
 
 	fmt.Println("-- Reports --")
-	fmt.Println("1. Report Stock Item")
+	fmt.Println("1. Report User Pembelian Terbanyak")
 	fmt.Println("2. Report Pesanan")
-	fmt.Println("3. Report Pembayaran")
+	fmt.Println("3. Report Barang Terjual")
 	fmt.Println("7. Back to Main Menu")
 	fmt.Print("Choose an option: ")
 	reader := bufio.NewReader(os.Stdin)
@@ -26,11 +26,12 @@ func showReportMenu() {
 	input = strings.TrimSpace(input)
 
 	if input == "1" {
-		handler.PrintItemReport()
+		// handler.PrintItemReport()
+		handler.PrintFrequentBuyersReport()
 	} else if input == "2" {
 		handler.PrintOrderReport()
 	} else if input == "3" {
-		handler.PrintPaymentReport()
+		handler.PrintMostSoldItemsReport()
 	} else if input == "7" {
 		ShowMenu()
 	} else {
