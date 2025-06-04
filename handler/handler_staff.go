@@ -47,10 +47,17 @@ func LoginUser() string {
 		return ""
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(passwordInput))
-	if err != nil {
-		fmt.Println("Incorrect password.")
-		return ""
+	if position == "admin" {
+		if passwordInput != passwordHash {
+			fmt.Println("Incorrect password.")
+			return ""
+		}
+	} else {
+		err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(passwordInput))
+		if err != nil {
+			fmt.Println("Incorrect password.")
+			return ""
+		}
 	}
 
 	// if passwordInput != passwordHash {
