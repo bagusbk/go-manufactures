@@ -3,7 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
-	"go-manufactures/handler"
+	"manufactures/handler"
 	"os"
 	"strings"
 )

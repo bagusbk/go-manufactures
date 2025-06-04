@@ -2,7 +2,6 @@ package config
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -28,6 +27,4 @@ func RunMigration(db *sql.DB) {
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		log.Fatalf("❌ Gagal menjalankan migrasi: %v", err)
 	}
-
-	fmt.Println("✅ Migrasi selesai atau tidak ada perubahan.")
 }

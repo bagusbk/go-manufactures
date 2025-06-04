@@ -3,7 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
-	"go-manufactures/handler"
+	"manufactures/handler"
 	"os"
 	"strings"
 )
@@ -23,17 +23,18 @@ func showOrderMenu() {
 	input = strings.TrimSpace(input)
 
 	if input == "1" {
-		handler.InsertOrder()
+		// handler.InsertOrder()
 	} else if input == "2" {
-		handler.PrintOrders()
+		// handler.PrintOrders()
+		handler.PrintItemReport()
 	} else if input == "3" {
-		handler.InsertOrderItem()
+		// handler.InsertOrderItem()
 	} else if input == "4" {
-		handler.PrintOrderItems()
+		// handler.PrintOrderItems()
 	} else if input == "5" {
-		handler.InsertPayment()
+		// handler.InsertPayment()
 	} else if input == "6" {
-		handler.PrintPayments()
+		// handler.PrintPayments()
 	} else if input == "7" {
 		ShowMenu()
 	} else {
