@@ -2,14 +2,17 @@ package main
 
 import (
 	"fmt"
+	"manufactures/cli"
 	"manufactures/config"
-	"manufactures/handler"
 )
 
 func main() {
 	db := config.InitDB()
 	config.RunMigration(db)
 
-	manufacturesHandler := &handler.ManufacturesHandler{DB: db}
+	// manufacturesHandler := &handler.ManufacturesHandler{DB: db}
+
+	cli.ShowMenu()
+
 	fmt.Println("Exiting application...")
 }
