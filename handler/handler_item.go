@@ -3,7 +3,7 @@ package handler
 import (
 	"bufio"
 	"fmt"
-	"go-manufactures/config"
+	"manufactures/config"
 	"os"
 	"strings"
 )
@@ -28,7 +28,7 @@ func InsertProduct() {
 		return
 	}
 
-	_, err := config.DB.Exec(`
+	_, err := config.InitDB().Exec(`
 		INSERT INTO item (name, price, stock)
 		VALUES (?, ?, ?)`,
 		name, price, stock,
@@ -42,7 +42,7 @@ func InsertProduct() {
 }
 
 func PrintProduct() {
-	rows, err := config.DB.Query(`
+	rows, err := config.InitDB().Query(`
 		SELECT i.item_id, i.name, c.name AS category, i.price, i.stock
 		FROM item i
 		LEFT JOIN category c ON i.category_id = c.category_id

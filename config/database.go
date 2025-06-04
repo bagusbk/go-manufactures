@@ -40,7 +40,5 @@ func InitDB() *sql.DB {
 		log.Fatal("Database tidak bisa diakses", err)
 	}
 
-	fmt.Println("✅ Database connected.")
-
 	return db
 }

@@ -3,7 +3,7 @@ package handler
 import (
 	"bufio"
 	"fmt"
-	"go-manufactures/config"
+	"manufactures/config"
 	"os"
 	"strings"
 )
@@ -21,7 +21,7 @@ func InsertUser() {
 
 	// Check for duplicate email
 	var exists int
-	checkErr := config.DB.QueryRow("SELECT COUNT(*) FROM user WHERE email = ?", email).Scan(&exists)
+	checkErr := config.InitDB().QueryRow("SELECT COUNT(*) FROM user WHERE email = ?", email).Scan(&exists)
 	if checkErr != nil {
 		fmt.Println("Error checking email:", checkErr)
 		return
@@ -40,8 +40,8 @@ func InsertUser() {
 		return
 	}
 
-	_, err := config.DB.Exec(`
-		INSERT INTO user (full_name, email, address)
+	_, err := config.InitDB().Exec(`
+		INSERT INTO users (full_name, email, address)
 		VALUES (?, ?, ?)`,
 		fullName, email, address,
 	)
@@ -54,7 +54,7 @@ func InsertUser() {
 }
 
 func PrintUser() {
-	rows, err := config.DB.Query("SELECT user_id, full_name, email, address, created_at FROM user")
+	rows, err := config.InitDB().Query("SELECT user_id, full_name, email, address, created_at FROM user")
 	if err != nil {
 		fmt.Println("Error retrieving users:", err)
 		return

@@ -4,10 +4,9 @@ import (
 	"bufio"
 	"database/sql"
 	"fmt"
+	"manufactures/config"
 	"os"
 	"strings"
-
-	"go-manufactures/config"
 
 	_ "github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
@@ -37,7 +36,7 @@ func LoginUser() string {
 	passwordInput = strings.TrimSpace(passwordInput)
 
 	var email, passwordHash, position string
-	err := config.DB.QueryRow("SELECT email, password_hash, position FROM staff WHERE email = ?", emailInput).Scan(&email, &passwordHash, &position)
+	err := config.InitDB().QueryRow("SELECT email, password_hash, position FROM staff WHERE email = ?", emailInput).Scan(&email, &passwordHash, &position)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("Email not found.")
@@ -86,9 +85,8 @@ func InsertStaff() {
 	email, _ := reader.ReadString('\n')
 	email = strings.TrimSpace(email)
 
-	// Check for duplicate email
 	var exists int
-	checkErr := config.DB.QueryRow("SELECT COUNT(*) FROM staff WHERE email = ?", email).Scan(&exists)
+	checkErr := config.InitDB().QueryRow("SELECT COUNT(*) FROM staff WHERE email = ?", email).Scan(&exists)
 	if checkErr != nil {
 		fmt.Println("Error checking email:", checkErr)
 		return
@@ -113,7 +111,7 @@ func InsertStaff() {
 		return
 	}
 
-	_, err = config.DB.Exec(`
+	_, err = config.InitDB().Exec(`
 		INSERT INTO staff (full_name, position, email, password_hash)
 		VALUES (?, ?, ?, ?)`,
 		fullName, position, email, hashedPassword,
@@ -127,7 +125,7 @@ func InsertStaff() {
 }
 
 func PrintAllStaff() {
-	rows, err := config.DB.Query("SELECT staff_id, full_name, position, email, created_at FROM staff")
+	rows, err := config.InitDB().Query("SELECT staff_id, full_name, position, email, created_at FROM staff")
 	if err != nil {
 		fmt.Println("Error retrieving staff:", err)
 		return
@@ -154,7 +152,7 @@ func DeleteStaff() {
 	idStr, _ := reader.ReadString('\n')
 	idStr = strings.TrimSpace(idStr)
 
-	res, err := config.DB.Exec("DELETE FROM staff WHERE staff_id = ?", idStr)
+	res, err := config.InitDB().Exec("DELETE FROM staff WHERE staff_id = ?", idStr)
 	if err != nil {
 		fmt.Println("Error deleting staff:", err)
 		return
