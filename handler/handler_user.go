@@ -3,6 +3,7 @@ package handler
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"manufactures/config"
 	"os"
 	"regexp"
@@ -86,5 +87,53 @@ func PrintUser() {
 		}
 		fmt.Printf("ID: %d | Name: %s | Email: %s | Address: %s | Created At: %s\n",
 			id, name, email, address, createdAt)
+	}
+}
+
+func PrintFrequentBuyersReport() {
+	rows, err := config.InitDB().Query(`
+        SELECT u.user_id, u.full_name, COUNT(o.order_id) AS order_count, 
+               i.name AS item_name, SUM(oi.quantity) AS total_quantity
+        FROM users u
+        JOIN orders o ON u.user_id = o.user_id
+        JOIN order_items oi ON o.order_id = oi.order_id
+        JOIN item i ON oi.item_id = i.item_id
+        JOIN payment p ON o.order_id = p.order_id
+        WHERE p.status = 'paid' AND o.status = 'completed'
+        GROUP BY u.user_id, i.item_id
+        ORDER BY order_count DESC;
+    `)
+	if err != nil {
+		log.Fatal("Error retrieving frequent buyers:", err)
+	}
+	defer rows.Close()
+
+	fmt.Println("Frequent Buyers Report:")
+	var previousUserID int
+	var previousFullName string
+	var orderCount int
+	var itemName string
+	var totalQuantity int
+
+	for rows.Next() {
+		var userID int
+		err := rows.Scan(&userID, &previousFullName, &orderCount, &itemName, &totalQuantity)
+		if err != nil {
+			log.Fatal("Error scanning row:", err)
+		}
+
+		// Print the user information for the first item or when user changes
+		if userID != previousUserID {
+			if previousUserID != 0 {
+				fmt.Println() // Empty line between different users
+			}
+			fmt.Printf("User ID: %d | Name: %s | Order Count: %d\n", userID, previousFullName, orderCount)
+		}
+
+		// Print the item name and total quantity for the user
+		fmt.Printf("   - Item: %s | Quantity: %d\n", itemName, totalQuantity)
+
+		// Update previousUserID to current userID for the next iteration
+		previousUserID = userID
 	}
 }
