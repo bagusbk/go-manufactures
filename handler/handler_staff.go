@@ -28,6 +28,7 @@ func isValidEmail(email string) bool {
 }
 
 var LoggedInStaff struct {
+	StaffID  int
 	Email    string
 	Position string
 }
@@ -42,8 +43,9 @@ func LoginUser() string {
 	passwordInput, _ := reader.ReadString('\n')
 	passwordInput = strings.TrimSpace(passwordInput)
 
+	var staffId int
 	var email, passwordHash, position string
-	err := config.InitDB().QueryRow("SELECT email, password_hash, position FROM staff WHERE email = ?", emailInput).Scan(&email, &passwordHash, &position)
+	err := config.InitDB().QueryRow("SELECT staff_id, email, password_hash, position FROM staff WHERE email = ?", emailInput).Scan(&staffId, &email, &passwordHash, &position)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("Email not found.")
@@ -70,7 +72,7 @@ func LoginUser() string {
 	// 	fmt.Println("Incorrect password.")
 	// 	return ""
 	// }
-
+	LoggedInStaff.StaffID = staffId
 	LoggedInStaff.Email = email
 	LoggedInStaff.Position = position
 	fmt.Printf("Login successful! Role: %s\n", position)
