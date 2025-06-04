@@ -70,7 +70,7 @@ func InsertUser() {
 }
 
 func PrintUser() {
-	rows, err := config.InitDB().Query("SELECT user_id, full_name, email, address, created_at FROM user")
+	rows, err := config.InitDB().Query("SELECT user_id, full_name, email, address, phone_number FROM users")
 	if err != nil {
 		fmt.Println("Error retrieving users:", err)
 		return
@@ -80,13 +80,13 @@ func PrintUser() {
 	fmt.Println("List of Users:")
 	for rows.Next() {
 		var id int
-		var name, email, address, createdAt string
-		if err := rows.Scan(&id, &name, &email, &address, &createdAt); err != nil {
+		var name, email, address, phoneNumber string
+		if err := rows.Scan(&id, &name, &email, &address, &phoneNumber); err != nil {
 			fmt.Println("Scan error:", err)
 			return
 		}
-		fmt.Printf("ID: %d | Name: %s | Email: %s | Address: %s | Created At: %s\n",
-			id, name, email, address, createdAt)
+		fmt.Printf("ID: %d | Name: %s | Email: %s | Address: %s | Phone Number: %s\n",
+			id, name, email, address, phoneNumber)
 	}
 }
 
