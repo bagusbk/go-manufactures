@@ -5,8 +5,16 @@ import (
 	"fmt"
 	"manufactures/config"
 	"os"
+	"strconv"
 	"strings"
 )
+
+type ItemReport struct {
+	ItemID int     `json:"item_id"`
+	Name   string  `json:"name"`
+	Stock  int     `json:"stock"`
+	Price  float64 `json:"price"`
+}
 
 func InsertProduct() {
 	reader := bufio.NewReader(os.Stdin)
@@ -16,19 +24,31 @@ func InsertProduct() {
 	name = strings.TrimSpace(name)
 
 	fmt.Print("Enter price: ")
-	price, _ := reader.ReadString('\n')
-	price = strings.TrimSpace(price)
+	priceStr, _ := reader.ReadString('\n')
+	priceStr = strings.TrimSpace(priceStr)
 
 	fmt.Print("Enter stock: ")
-	stock, _ := reader.ReadString('\n')
-	stock = strings.TrimSpace(stock)
+	stockStr, _ := reader.ReadString('\n')
+	stockStr = strings.TrimSpace(stockStr)
 
-	if name == "" || price == "" || stock == "" {
+	if name == "" || priceStr == "" || stockStr == "" {
 		fmt.Println("All fields are required.")
 		return
 	}
 
-	_, err := config.InitDB().Exec(`
+	price, err := strconv.ParseFloat(priceStr, 64)
+	if err != nil {
+		fmt.Println("Invalid price format. Please enter a valid decimal number.")
+		return
+	}
+
+	stock, err := strconv.Atoi(stockStr)
+	if err != nil {
+		fmt.Println("Invalid stock format. Please enter a valid integer number.")
+		return
+	}
+
+	_, err = config.InitDB().Exec(`
 		INSERT INTO item (name, price, stock)
 		VALUES (?, ?, ?)`,
 		name, price, stock,
