@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"manufactures/config"
 	"os"
+	"regexp"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -18,6 +19,12 @@ func hashPassword(password string) (string, error) {
 		return "", err
 	}
 	return string(hash), nil
+}
+
+func isValidEmail(email string) bool {
+	// Regular expression for validating email format
+	re := regexp.MustCompile(`^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$`)
+	return re.MatchString(email)
 }
 
 var LoggedInStaff struct {
@@ -81,9 +88,35 @@ func InsertStaff() {
 	position, _ := reader.ReadString('\n')
 	position = strings.TrimSpace(position)
 
-	fmt.Print("Enter email: ")
-	email, _ := reader.ReadString('\n')
-	email = strings.TrimSpace(email)
+	// Validasi posisi, hanya menerima "admin", "manager", atau "staff"
+	validPositions := []string{"admin", "manager", "staff"}
+	isValidPosition := false
+
+	// Cek apakah posisi yang dimasukkan valid
+	for _, valid := range validPositions {
+		if position == valid {
+			isValidPosition = true
+			break
+		}
+	}
+
+	if !isValidPosition {
+		fmt.Println("Invalid position entered. Please enter one of the following: admin, manager, staff.")
+		return
+	}
+
+	var email string
+	for {
+		fmt.Print("Enter email: ")
+		email, _ = reader.ReadString('\n')
+		email = strings.TrimSpace(email)
+
+		if !isValidEmail(email) {
+			fmt.Println("Invalid email format. Please enter a valid email.")
+		} else {
+			break
+		}
+	}
 
 	var exists int
 	checkErr := config.InitDB().QueryRow("SELECT COUNT(*) FROM staff WHERE email = ?", email).Scan(&exists)
