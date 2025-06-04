@@ -61,6 +61,39 @@ func getInputFloat(reader *bufio.Reader) float64 {
 	fmt.Sscanf(input, "%f", &result)
 	return result
 }
+
+// Handler untuk laporan pesanan
+func PrintOrderReport() {
+	rows, err := config.InitDB().Query(`
+		SELECT o.order_id, o.user_id, u.full_name, o.order_date, o.status, o.total_amount, o.staff_id, s.full_name
+		FROM orders o
+		JOIN users u ON o.user_id = u.user_id
+		JOIN staff s ON o.staff_id = s.staff_id
+	`)
+	if err != nil {
+		fmt.Println("Error retrieving orders:", err)
+		return
+	}
+	defer rows.Close()
+
+	var reports []OrderReport
+	for rows.Next() {
+		var report OrderReport
+		err := rows.Scan(&report.OrderID, &report.UserID, &report.FullName, &report.OrderDate, &report.Status, &report.TotalAmount, &report.StaffID, &report.StaffName)
+		if err != nil {
+			fmt.Println("Error scanning row:", err)
+			return
+		}
+		reports = append(reports, report)
+	}
+
+	fmt.Println("Order Report:")
+	for _, report := range reports {
+		fmt.Printf("OrderID: %d | UserID: %d | Full Name User: %s | OrderDate: %s | Status: %s | TotalAmount: %.2f | Staff Name: %s\n",
+			report.OrderID, report.UserID, report.FullName, report.OrderDate, report.Status, report.TotalAmount, report.StaffName)
+	}
+}
+
 func CreateOrder() {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter user ID: ")
