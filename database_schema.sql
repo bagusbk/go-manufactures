@@ -1,3 +1,4 @@
+-- USERS
 CREATE TABLE users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
     full_name VARCHAR(100) NOT NULL,
@@ -7,15 +8,17 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- STAFF
 CREATE TABLE staff (
     staff_id INT PRIMARY KEY AUTO_INCREMENT,
     full_name VARCHAR(100) NOT NULL,
     position VARCHAR(50),
-    email VARCHAR(100) UNIQUE,
+    email VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ITEM
 CREATE TABLE item (
     item_id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
@@ -24,6 +27,19 @@ CREATE TABLE item (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ORDERS
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(30) DEFAULT 'processing',
+    total_amount DECIMAL(12,2),
+    staff_id INT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (staff_id) REFERENCES staff(staff_id)
+);
+
+-- PAYMENT
 CREATE TABLE payment (
     payment_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT,
@@ -36,23 +52,13 @@ CREATE TABLE payment (
     FOREIGN KEY (order_id) REFERENCES orders(order_id)
 );
 
-CREATE TABLE orders (
-    order_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT,
-    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(30) DEFAULT 'processing',
-    total_amount DECIMAL(12,2),
-    staff_id INT,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (staff_id) REFERENCES staff(staff_id)
-);
-
+-- ORDER ITEMS
 CREATE TABLE order_items (
     order_item_id INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT,
     item_id INT,
-    quantity INT,
-    price DECIMAL(12,2),
+    quantity INT NOT NULL,
+    price DECIMAL(12,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(order_id),
     FOREIGN KEY (item_id) REFERENCES item(item_id)
 );
