@@ -3,13 +3,14 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"manufactures/entity"
 	"manufactures/handler"
 	"os"
 	"strings"
 )
 
 func showUserMenu() {
-	if handler.LoggedInStaff.Position != "admin" {
+	if entity.LoggedInStaff.Position != "admin" {
 		fmt.Println("Unauthorized: Only admin can manage users.")
 		return
 	}

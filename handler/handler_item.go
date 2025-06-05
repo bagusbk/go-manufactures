@@ -5,17 +5,11 @@ import (
 	"fmt"
 	"log"
 	"manufactures/config"
+	"manufactures/entity"
 	"os"
 	"strconv"
 	"strings"
 )
-
-type Item struct {
-	ItemID int     `json:"item_id"`
-	Name   string  `json:"name"`
-	Stock  int     `json:"stock"`
-	Price  float64 `json:"price"`
-}
 
 func InsertProduct() {
 	reader := bufio.NewReader(os.Stdin)
@@ -72,9 +66,9 @@ func PrintProduct() {
 	}
 	defer rows.Close()
 
-	var listProduct []Item
+	var listProduct []entity.Item
 	for rows.Next() {
-		var report Item
+		var report entity.Item
 		err := rows.Scan(&report.ItemID, &report.Name, &report.Stock, &report.Price)
 		if err != nil {
 			fmt.Println("Error scanning row:", err)

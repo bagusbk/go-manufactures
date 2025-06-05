@@ -3,13 +3,14 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"manufactures/entity"
 	"manufactures/handler"
 	"os"
 	"strings"
 )
 
 func showReportMenu() {
-	pos := handler.LoggedInStaff.Position
+	pos := entity.LoggedInStaff.Position
 	if pos != "admin" && pos != "manager" {
 		fmt.Println("Unauthorized: Only admin or manager can view reports.")
 		return

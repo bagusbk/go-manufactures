@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"manufactures/entity"
 	"manufactures/handler"
 	"os"
 	"strings"
@@ -11,7 +12,7 @@ import (
 func ShowMenu() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		if handler.LoggedInStaff.Email == "" {
+		if entity.LoggedInStaff.Email == "" {
 			fmt.Println("============================")
 			fmt.Println("Welcome to Uniclever")
 			fmt.Println("============================")
@@ -25,7 +26,7 @@ func ShowMenu() {
 			if input == "1" {
 				email := handler.LoginUser()
 				if email != "" {
-					handler.LoggedInStaff.Email = email
+					entity.LoggedInStaff.Email = email
 				}
 			} else if input == "2" {
 				fmt.Println("Goodbye!")
@@ -35,7 +36,7 @@ func ShowMenu() {
 			}
 		} else {
 			fmt.Println("============================")
-			fmt.Printf("Welcome, %s (Role: %s)\n", handler.LoggedInStaff.Email, handler.LoggedInStaff.Position)
+			fmt.Printf("Welcome, %s (Role: %s)\n", entity.LoggedInStaff.Email, entity.LoggedInStaff.Position)
 			fmt.Println("============================")
 			fmt.Println("1. Manage Products")
 			fmt.Println("2. Manage User")
@@ -60,8 +61,8 @@ func ShowMenu() {
 			case "5":
 				showReportMenu()
 			case "6":
-				handler.LoggedInStaff.Email = ""
-				handler.LoggedInStaff.Position = ""
+				entity.LoggedInStaff.Email = ""
+				entity.LoggedInStaff.Position = ""
 				fmt.Println("Logged out.")
 			default:
 				fmt.Println("Invalid input")
