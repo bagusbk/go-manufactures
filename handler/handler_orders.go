@@ -61,7 +61,7 @@ func PrintOrderReport() {
 
 	fmt.Println("Order Report:")
 	for _, report := range reports {
-		fmt.Printf("OrderID: %d | UserID: %d | Full Name User: %s | OrderDate: %s | Status: %s | TotalAmount: %.2f | Staff Name: %s\n",
+		fmt.Printf("OrderID: %d | UserID: %d | Full Name User: %s | Order Date: %s | Status: %s | Total Amount: %.2f | Staff Name: %s\n",
 			report.OrderID, report.UserID, report.FullName, report.OrderDate, report.Status, report.TotalAmount, report.StaffName)
 	}
 }
