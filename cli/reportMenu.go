@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"bufio"
 	"fmt"
-	"go-manufactures/handler"
+	"manufactures/handler"
+	"os"
+	"strings"
 )
 
 func showReportMenu() {
@@ -13,5 +16,25 @@ func showReportMenu() {
 	}
 
 	fmt.Println("-- Reports --")
-	fmt.Println("[placeholder for future reports]")
+	fmt.Println("1. Report User Pembelian Terbanyak")
+	fmt.Println("2. Report Pesanan")
+	fmt.Println("3. Report Barang Terjual")
+	fmt.Println("7. Back to Main Menu")
+	fmt.Print("Choose an option: ")
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	input = strings.TrimSpace(input)
+
+	if input == "1" {
+		// handler.PrintItemReport()
+		handler.PrintFrequentBuyersReport()
+	} else if input == "2" {
+		handler.PrintOrderReport()
+	} else if input == "3" {
+		handler.PrintMostSoldItemsReport()
+	} else if input == "7" {
+		ShowMenu()
+	} else {
+		fmt.Println("Invalid input")
+	}
 }

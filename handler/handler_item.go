@@ -3,10 +3,19 @@ package handler
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"manufactures/config"
 	"os"
+	"strconv"
 	"strings"
 )
+
+type Item struct {
+	ItemID int     `json:"item_id"`
+	Name   string  `json:"name"`
+	Stock  int     `json:"stock"`
+	Price  float64 `json:"price"`
+}
 
 func InsertProduct() {
 	reader := bufio.NewReader(os.Stdin)
@@ -16,19 +25,31 @@ func InsertProduct() {
 	name = strings.TrimSpace(name)
 
 	fmt.Print("Enter price: ")
-	price, _ := reader.ReadString('\n')
-	price = strings.TrimSpace(price)
+	priceStr, _ := reader.ReadString('\n')
+	priceStr = strings.TrimSpace(priceStr)
 
 	fmt.Print("Enter stock: ")
-	stock, _ := reader.ReadString('\n')
-	stock = strings.TrimSpace(stock)
+	stockStr, _ := reader.ReadString('\n')
+	stockStr = strings.TrimSpace(stockStr)
 
-	if name == "" || price == "" || stock == "" {
+	if name == "" || priceStr == "" || stockStr == "" {
 		fmt.Println("All fields are required.")
 		return
 	}
 
-	_, err := config.InitDB().Exec(`
+	price, err := strconv.ParseFloat(priceStr, 64)
+	if err != nil {
+		fmt.Println("Invalid price format. Please enter a valid decimal number.")
+		return
+	}
+
+	stock, err := strconv.Atoi(stockStr)
+	if err != nil {
+		fmt.Println("Invalid stock format. Please enter a valid integer number.")
+		return
+	}
+
+	_, err = config.InitDB().Exec(`
 		INSERT INTO item (name, price, stock)
 		VALUES (?, ?, ?)`,
 		name, price, stock,
@@ -43,28 +64,57 @@ func InsertProduct() {
 
 func PrintProduct() {
 	rows, err := config.InitDB().Query(`
-		SELECT i.item_id, i.name, c.name AS category, i.price, i.stock
-		FROM item i
-		LEFT JOIN category c ON i.category_id = c.category_id
+		SELECT item_id, name, stock, price FROM item
 	`)
 	if err != nil {
-		fmt.Println("Error retrieving products:", err)
+		fmt.Println("Error retrieving items:", err)
 		return
 	}
 	defer rows.Close()
 
-	fmt.Println("List of Products:")
+	var listProduct []Item
 	for rows.Next() {
-		var id int
-		var name, category string
-		var price float64
-		var stock int
-		err := rows.Scan(&id, &name, &category, &price, &stock)
+		var report Item
+		err := rows.Scan(&report.ItemID, &report.Name, &report.Stock, &report.Price)
 		if err != nil {
-			fmt.Println("Scan error:", err)
+			fmt.Println("Error scanning row:", err)
 			return
 		}
-		fmt.Printf("ID: %d | Name: %s | Category: %s | Price: %.2f | Stock: %d\n",
-			id, name, category, price, stock)
+		listProduct = append(listProduct, report)
+	}
+
+	fmt.Println("List of Products:")
+	for _, report := range listProduct {
+		fmt.Printf("ProductID: %d | Product Name: %s | Stock: %d | Price: %.2f\n",
+			report.ItemID, report.Name, report.Stock, report.Price)
+	}
+}
+
+func PrintMostSoldItemsReport() {
+	rows, err := config.InitDB().Query(`
+        SELECT i.item_id, i.name, SUM(oi.quantity) AS total_sold
+        FROM item i
+        JOIN order_items oi ON i.item_id = oi.item_id
+        JOIN orders o ON oi.order_id = o.order_id
+        JOIN payment p ON o.order_id = p.order_id
+        WHERE p.status = 'paid'  -- Hanya hitung pesanan yang sudah dibayar
+        GROUP BY i.item_id
+        ORDER BY total_sold DESC;
+    `)
+	if err != nil {
+		log.Fatal("Error retrieving most sold items:", err)
+	}
+	defer rows.Close()
+
+	fmt.Println("Most Sold Items Report:")
+	for rows.Next() {
+		var itemID int
+		var name string
+		var totalSold int
+		err := rows.Scan(&itemID, &name, &totalSold)
+		if err != nil {
+			log.Fatal("Error scanning row:", err)
+		}
+		fmt.Printf("Item ID: %d | Name: %s | Total Sold: %d\n", itemID, name, totalSold)
 	}
 }

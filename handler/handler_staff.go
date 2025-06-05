@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"manufactures/config"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -20,7 +22,14 @@ func hashPassword(password string) (string, error) {
 	return string(hash), nil
 }
 
+func isValidEmail(email string) bool {
+	// Regular expression for validating email format
+	re := regexp.MustCompile(`^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$`)
+	return re.MatchString(email)
+}
+
 var LoggedInStaff struct {
+	StaffID  int
 	Email    string
 	Position string
 }
@@ -35,8 +44,9 @@ func LoginUser() string {
 	passwordInput, _ := reader.ReadString('\n')
 	passwordInput = strings.TrimSpace(passwordInput)
 
+	var staffId int
 	var email, passwordHash, position string
-	err := config.InitDB().QueryRow("SELECT email, password_hash, position FROM staff WHERE email = ?", emailInput).Scan(&email, &passwordHash, &position)
+	err := config.InitDB().QueryRow("SELECT staff_id, email, password_hash, position FROM staff WHERE email = ?", emailInput).Scan(&staffId, &email, &passwordHash, &position)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("Email not found.")
@@ -63,7 +73,7 @@ func LoginUser() string {
 	// 	fmt.Println("Incorrect password.")
 	// 	return ""
 	// }
-
+	LoggedInStaff.StaffID = staffId
 	LoggedInStaff.Email = email
 	LoggedInStaff.Position = position
 	fmt.Printf("Login successful! Role: %s\n", position)
@@ -81,9 +91,35 @@ func InsertStaff() {
 	position, _ := reader.ReadString('\n')
 	position = strings.TrimSpace(position)
 
-	fmt.Print("Enter email: ")
-	email, _ := reader.ReadString('\n')
-	email = strings.TrimSpace(email)
+	// Validasi posisi, hanya menerima "admin", "manager", atau "staff"
+	validPositions := []string{"admin", "manager", "staff"}
+	isValidPosition := false
+
+	// Cek apakah posisi yang dimasukkan valid
+	for _, valid := range validPositions {
+		if position == valid {
+			isValidPosition = true
+			break
+		}
+	}
+
+	if !isValidPosition {
+		fmt.Println("Invalid position entered. Please enter one of the following: admin, manager, staff.")
+		return
+	}
+
+	var email string
+	for {
+		fmt.Print("Enter email: ")
+		email, _ = reader.ReadString('\n')
+		email = strings.TrimSpace(email)
+
+		if !isValidEmail(email) {
+			fmt.Println("Invalid email format. Please enter a valid email.")
+		} else {
+			break
+		}
+	}
 
 	var exists int
 	checkErr := config.InitDB().QueryRow("SELECT COUNT(*) FROM staff WHERE email = ?", email).Scan(&exists)
@@ -152,7 +188,20 @@ func DeleteStaff() {
 	idStr, _ := reader.ReadString('\n')
 	idStr = strings.TrimSpace(idStr)
 
-	res, err := config.InitDB().Exec("DELETE FROM staff WHERE staff_id = ?", idStr)
+	staffIDToDelete, err := strconv.Atoi(idStr)
+	if err != nil {
+		fmt.Println("Invalid staff ID format.")
+		return
+	}
+
+	// Validasi tidak bisa menghapus diri sendiri
+	if staffIDToDelete == LoggedInStaff.StaffID {
+		fmt.Println("❌ You cannot delete your own account!")
+		return
+	}
+
+	// Melakukan penghapusan staff
+	res, err := config.InitDB().Exec("DELETE FROM staff WHERE staff_id = ?", staffIDToDelete)
 	if err != nil {
 		fmt.Println("Error deleting staff:", err)
 		return

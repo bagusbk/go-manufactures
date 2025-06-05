@@ -33,7 +33,7 @@ func InitDB() *sql.DB {
 
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(25)
-	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetConnMaxLifetime(30 * time.Minute)
 
 	err = db.Ping()
 	if err != nil {
