@@ -11,113 +11,132 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Simulated InsertProduct function to match the one in the handler
+// InsertProductTestHelper mensimulasikan fungsi InsertProduct untuk menguji penambahan produk
 func InsertProductTestHelper(db *sql.DB, name, priceStr, stockStr string) error {
-	// If any input is invalid, return an error
+	// Jika ada input yang tidak valid (kosong), kembalikan error
 	if name == "" || priceStr == "" || stockStr == "" {
-		return fmt.Errorf("All fields are required.")
+		return fmt.Errorf("All fields are required.") // Semua field harus diisi
 	}
 
-	// Parse price and stock
+	// Mengonversi price (harga) ke tipe float64
 	price, err := strconv.ParseFloat(priceStr, 64)
 	if err != nil {
-		return fmt.Errorf("Invalid price format.")
+		return fmt.Errorf("Invalid price format.") // Format harga tidak valid
 	}
 
+	// Mengonversi stock (stok) ke tipe int
 	stock, err := strconv.Atoi(stockStr)
 	if err != nil {
-		return fmt.Errorf("Invalid stock format.")
+		return fmt.Errorf("Invalid stock format.") // Format stok tidak valid
 	}
 
-	// Simulating inserting into DB
+	// Mensimulasikan eksekusi query untuk memasukkan data produk ke dalam database
 	_, err = db.Exec("INSERT INTO item (name, price, stock) VALUES (?, ?, ?)", name, price, stock)
 	return err
 }
 
-// 	for dbRows.Next() {
-// 		var itemID int
-// 		var name string
-// 		var totalSold int
-// 		err := dbRows.Scan(&itemID, &name, &totalSold)
-// 		if err != nil {
-// 			return fmt.Sprintf("Error scanning row: %v", err)
-// 		}
-// 		result += fmt.Sprintf("Item ID: %d | Name: %s | Total Sold: %d\n", itemID, name, totalSold)
-// 	}
-// 	return result
-// }
-
-func PrintMostSoldItemsReportTest(db *sql.DB) string {
-	// Create mock data for the query result
-	// rows := sqlmock.NewRows([]string{"item_id", "name", "total_sold"}).
-	// 	AddRow(1, "Magnum", 150).
-	// 	AddRow(2, "Dove", 120).
-	// 	AddRow(3, "Vaseline", 100)
-
-	// Use ExpectQuery with a looser match (just match part of the query)
-	// NOTE: This function signature does not provide access to the mock object,
-	// so you cannot set expectations here. Instead, you should set up expectations
-	// in your test function, not in this helper.
-
-	// This function should actually execute the query and build the report string.
-	// For demonstration, let's simulate the output as if the query succeeded.
-	report := "Item ID: 1 | Name: Magnum | Total Sold: 150\n" +
-		"Item ID: 2 | Name: Dove | Total Sold: 120\n" +
-		"Item ID: 3 | Name: Vaseline | Total Sold: 100\n"
-	return report
-}
-
+// Unit Test untuk InsertProductTestHelper
 func TestInsertProduct(t *testing.T) {
-	// Creating mock database connection using sqlmock
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("An error '%s' was not expected when opening a mock database connection", err)
-	}
-	defer db.Close()
+	// Membuat koneksi mock ke database menggunakan sqlmock
+	db, mock, err := sqlmock.New() // Menginisialisasi koneksi mock
+	require.NoError(t, err)        // Memastikan tidak ada error dalam setup mock database
+	defer db.Close()               // Pastikan koneksi ditutup setelah selesai
 
-	// Setup expectation for INSERT statement
-	mock.ExpectExec("INSERT INTO item (name, price, stock)").
-		WithArgs("", "abc", "xyz").
-		WillReturnResult(sqlmock.NewResult(1, 1)) // Simulating successful insert
+	// Setup ekspektasi mock untuk eksekusi query INSERT produk
+	mock.ExpectExec("INSERT INTO item").WithArgs("Product1", 100.0, 10).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	// Simulating invalid input (empty name, invalid price, invalid stock)
-	name := ""
-	price := "abc"
-	stock := "xyz"
+	// Uji dengan input valid
+	err = InsertProductTestHelper(db, "Product1", "100.0", "10")
+	require.NoError(t, err, "InsertProductTestHelper should succeed with valid inputs") // Harus berhasil dengan input valid
 
-	// Simulate inserting product with invalid data
-	err = InsertProductTestHelper(db, name, price, stock)
+	// Uji input invalid: nama kosong
+	err = InsertProductTestHelper(db, "", "100.0", "10")
+	require.Error(t, err, "InsertProductTestHelper should fail when name is empty") // Harus gagal karena nama kosong
 
-	// Assert that the error is expected
-	require.Error(t, err, "Failed to insert product due to invalid data")
+	// Uji input invalid: format harga tidak valid
+	err = InsertProductTestHelper(db, "Product1", "abc", "10")
+	require.Error(t, err, "InsertProductTestHelper should fail when price is invalid") // Harus gagal karena format harga salah
+
+	// Uji input invalid: format stok tidak valid
+	err = InsertProductTestHelper(db, "Product1", "100.0", "xyz")
+	require.Error(t, err, "InsertProductTestHelper should fail when stock is invalid") // Harus gagal karena format stok salah
 }
 
-// Unit Test for PrintMostSoldItemsReport function
-func TestPrintMostSoldItemsReport(t *testing.T) {
-	// Creating mock database connection using sqlmock
-	db, mock, err := sqlmock.New() // Initialize mock database connection
-	if err != nil {
-		t.Fatalf("An error '%s' was not expected when opening a mock database connection", err)
-	}
-	defer db.Close()
+// Unit Test untuk InsertProductTestHelper - Kasus Gagal
+func TestInsertProductFail(t *testing.T) {
+	// Membuat koneksi mock ke database menggunakan sqlmock
+	db, _, err := sqlmock.New() // Menginisialisasi koneksi mock
+	require.NoError(t, err)     // Memastikan tidak ada error dalam setup mock database
+	defer db.Close()            // Pastikan koneksi ditutup setelah selesai
 
-	// Setup mock expectation for query
+	// Test input invalid: nama kosong
+	err = InsertProductTestHelper(db, "", "100.0", "10")
+	require.Error(t, err, "InsertProductTestHelper should fail when name is empty") // Harus gagal karena nama kosong
+
+	// Test input invalid: harga tidak valid
+	err = InsertProductTestHelper(db, "Product1", "abc", "10")
+	require.Error(t, err, "InsertProductTestHelper should fail when price is invalid") // Harus gagal karena format harga salah
+
+	// Test input invalid: stok tidak valid
+	err = InsertProductTestHelper(db, "Product1", "100.0", "xyz")
+	require.Error(t, err, "InsertProductTestHelper should fail when stock is invalid") // Harus gagal karena format stok salah
+
+	// Test input invalid: semua field kosong
+	err = InsertProductTestHelper(db, "", "", "")
+	require.Error(t, err, "InsertProductTestHelper should fail when all fields are empty") // Harus gagal karena semua field kosong
+}
+
+// PrintMostSoldItemsReportTest menghasilkan laporan untuk item yang paling laris (mensimulasikan query database)
+func PrintMostSoldItemsReportTest(db *sql.DB) string {
+	// Menjalankan query untuk mendapatkan item yang paling laris
+	rows, err := db.Query("SELECT item_id, name, total_sold FROM items")
+	if err != nil {
+		return fmt.Sprintf("Error executing query: %v", err) // Menangani error jika query gagal
+	}
+	defer rows.Close() // Pastikan koneksi rows ditutup setelah selesai
+
+	var result string
+	// Iterasi untuk membaca hasil query
+	for rows.Next() {
+		var itemID int
+		var name string
+		var totalSold int
+		err := rows.Scan(&itemID, &name, &totalSold)
+		if err != nil {
+			return fmt.Sprintf("Error scanning row: %v", err) // Menangani error saat pemindaian data
+		}
+		// Menambahkan hasil item ke dalam string laporan
+		result += fmt.Sprintf("Item ID: %d | Name: %s | Total Sold: %d\n", itemID, name, totalSold)
+	}
+
+	return result
+}
+
+// Unit Test untuk PrintMostSoldItemsReportTest
+func TestPrintMostSoldItemsReport(t *testing.T) {
+	// Membuat koneksi mock ke database menggunakan sqlmock
+	db, mock, err := sqlmock.New() // Menginisialisasi koneksi mock
+	require.NoError(t, err)        // Memastikan tidak ada error dalam setup mock database
+	defer db.Close()               // Pastikan koneksi ditutup setelah selesai
+
+	// Setup mock rows untuk hasil query
 	rows := sqlmock.NewRows([]string{"item_id", "name", "total_sold"}).
 		AddRow(1, "Magnum", 150).
 		AddRow(2, "Dove", 120).
 		AddRow(3, "Vaseline", 100)
 
-	mock.ExpectQuery("SELECT i.item_id, i.name, SUM(oi.quantity) AS total_sold").
-		WillReturnRows(rows)
+	// Setup ekspektasi mock untuk query SELECT
+	mock.ExpectQuery("SELECT item_id, name, total_sold FROM items").
+		WillReturnRows(rows) // Mengembalikan mock rows sebagai hasil query
 
-	// Run the function and capture the output
+	// Panggil fungsi dan tangkap hasil output
 	report := PrintMostSoldItemsReportTest(db)
 
-	// Expected output
+	// Output yang diharapkan
 	expectedOutput := "Item ID: 1 | Name: Magnum | Total Sold: 150\n" +
 		"Item ID: 2 | Name: Dove | Total Sold: 120\n" +
 		"Item ID: 3 | Name: Vaseline | Total Sold: 100\n"
 
-	// Validate the result
-	assert.Equal(t, expectedOutput, report)
+	// Validasi hasil
+	assert.Equal(t, expectedOutput, report, "The report output should match the expected format.") // Memastikan hasil output sesuai dengan yang diharapkan
 }
