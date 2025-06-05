@@ -23,7 +23,6 @@ func hashPassword(password string) (string, error) {
 }
 
 func isValidEmail(email string) bool {
-	// Regular expression for validating email format
 	re := regexp.MustCompile(`^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$`)
 	return re.MatchString(email)
 }
@@ -69,10 +68,6 @@ func LoginUser() string {
 		}
 	}
 
-	// if passwordInput != passwordHash {
-	// 	fmt.Println("Incorrect password.")
-	// 	return ""
-	// }
 	LoggedInStaff.StaffID = staffId
 	LoggedInStaff.Email = email
 	LoggedInStaff.Position = position
@@ -91,11 +86,8 @@ func InsertStaff() {
 	position, _ := reader.ReadString('\n')
 	position = strings.TrimSpace(position)
 
-	// Validasi posisi, hanya menerima "admin", "manager", atau "staff"
 	validPositions := []string{"admin", "manager", "staff"}
 	isValidPosition := false
-
-	// Cek apakah posisi yang dimasukkan valid
 	for _, valid := range validPositions {
 		if position == valid {
 			isValidPosition = true
@@ -147,11 +139,7 @@ func InsertStaff() {
 		return
 	}
 
-	_, err = config.InitDB().Exec(`
-		INSERT INTO staff (full_name, position, email, password_hash)
-		VALUES (?, ?, ?, ?)`,
-		fullName, position, email, hashedPassword,
-	)
+	_, err = config.InitDB().Exec(`INSERT INTO staff (full_name, position, email, password_hash) VALUES (?, ?, ?, ?)`, fullName, position, email, hashedPassword)
 	if err != nil {
 		fmt.Println("Error inserting staff:", err)
 		return
@@ -194,24 +182,101 @@ func DeleteStaff() {
 		return
 	}
 
-	// Validasi tidak bisa menghapus diri sendiri
 	if staffIDToDelete == LoggedInStaff.StaffID {
 		fmt.Println("❌ You cannot delete your own account!")
 		return
 	}
 
-	// Melakukan penghapusan staff
+	var exists int
+	err = config.InitDB().QueryRow("SELECT COUNT(*) FROM staff WHERE staff_id = ?", staffIDToDelete).Scan(&exists)
+	if err != nil {
+		fmt.Println("Error checking staff existence:", err)
+		return
+	}
+	if exists == 0 {
+		fmt.Println("⚠️ No staff found with that ID.")
+		return
+	}
+
 	res, err := config.InitDB().Exec("DELETE FROM staff WHERE staff_id = ?", staffIDToDelete)
 	if err != nil {
 		fmt.Println("Error deleting staff:", err)
 		return
 	}
 
-	rowsAffected, _ := res.RowsAffected()
-	if rowsAffected == 0 {
+	fmt.Println("✅ Staff successfully deleted.")
+}
+
+func UpdateStaffRole() {
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Print("Enter Staff ID to update role: ")
+	idStr, _ := reader.ReadString('\n')
+	idStr = strings.TrimSpace(idStr)
+
+	staffID, err := strconv.Atoi(idStr)
+	if err != nil {
+		fmt.Println("Invalid staff ID.")
+		return
+	}
+
+	if staffID == LoggedInStaff.StaffID {
+		fmt.Println("❌ You cannot change your own role.")
+		return
+	}
+
+	var exists int
+	err = config.InitDB().QueryRow("SELECT COUNT(*) FROM staff WHERE staff_id = ?", staffID).Scan(&exists)
+	if err != nil {
+		fmt.Println("Error checking staff existence:", err)
+		return
+	}
+	if exists == 0 {
 		fmt.Println("⚠️ No staff found with that ID.")
 		return
 	}
 
-	fmt.Println("✅ Staff successfully deleted.")
+	fmt.Print("Enter new role (admin/manager/staff): ")
+	newRole, _ := reader.ReadString('\n')
+	newRole = strings.TrimSpace(newRole)
+
+	validRoles := []string{"admin", "manager", "staff"}
+	isValid := false
+	for _, r := range validRoles {
+		if newRole == r {
+			isValid = true
+			break
+		}
+	}
+	if !isValid {
+		fmt.Println("Invalid role. Allowed: admin, manager, staff.")
+		return
+	}
+
+	var adminCount int
+	err = config.InitDB().QueryRow("SELECT COUNT(*) FROM staff WHERE position = 'admin'").Scan(&adminCount)
+	if err != nil {
+		fmt.Println("Database error:", err)
+		return
+	}
+
+	var currentRole string
+	err = config.InitDB().QueryRow("SELECT position FROM staff WHERE staff_id = ?", staffID).Scan(&currentRole)
+	if err != nil {
+		fmt.Println("Staff not found.")
+		return
+	}
+
+	if currentRole == "admin" && newRole != "admin" && adminCount == 1 {
+		fmt.Println("⚠️ Cannot change role. This is the last admin.")
+		return
+	}
+
+	_, err = config.InitDB().Exec("UPDATE staff SET position = ? WHERE staff_id = ?", newRole, staffID)
+	if err != nil {
+		fmt.Println("Error updating staff role:", err)
+		return
+	}
+
+	fmt.Println("✅ Staff role updated successfully.")
 }
