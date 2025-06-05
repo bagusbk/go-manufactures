@@ -114,9 +114,9 @@ func InsertStaff() {
 	}
 
 	var exists int
-	checkErr := config.InitDB().QueryRow("SELECT COUNT(*) FROM staff WHERE email = ?", email).Scan(&exists)
-	if checkErr != nil {
-		fmt.Println("Error checking email:", checkErr)
+	err := config.InitDB().QueryRow("SELECT COUNT(*) FROM staff WHERE email = ?", email).Scan(&exists)
+	if err != nil {
+		fmt.Println("Error checking email:", err)
 		return
 	}
 	if exists > 0 {
@@ -198,7 +198,7 @@ func DeleteStaff() {
 		return
 	}
 
-	res, err := config.InitDB().Exec("DELETE FROM staff WHERE staff_id = ?", staffIDToDelete)
+	_, err = config.InitDB().Exec("DELETE FROM staff WHERE staff_id = ?", staffIDToDelete)
 	if err != nil {
 		fmt.Println("Error deleting staff:", err)
 		return
@@ -225,16 +225,15 @@ func UpdateStaffRole() {
 		return
 	}
 
-	var exists int
-	err = config.InitDB().QueryRow("SELECT COUNT(*) FROM staff WHERE staff_id = ?", staffID).Scan(&exists)
+	var fullName, email, currentRole string
+	err = config.InitDB().QueryRow("SELECT full_name, email, position FROM staff WHERE staff_id = ?", staffID).Scan(&fullName, &email, &currentRole)
 	if err != nil {
-		fmt.Println("Error checking staff existence:", err)
-		return
-	}
-	if exists == 0 {
 		fmt.Println("⚠️ No staff found with that ID.")
 		return
 	}
+
+	fmt.Printf("Confirm Update:")
+	fmt.Printf("\nID: %d\nName: %s\nEmail: %s\nCurrent Role: %s\n", staffID, fullName, email, currentRole)
 
 	fmt.Print("Enter new role (admin/manager/staff): ")
 	newRole, _ := reader.ReadString('\n')
@@ -257,13 +256,6 @@ func UpdateStaffRole() {
 	err = config.InitDB().QueryRow("SELECT COUNT(*) FROM staff WHERE position = 'admin'").Scan(&adminCount)
 	if err != nil {
 		fmt.Println("Database error:", err)
-		return
-	}
-
-	var currentRole string
-	err = config.InitDB().QueryRow("SELECT position FROM staff WHERE staff_id = ?", staffID).Scan(&currentRole)
-	if err != nil {
-		fmt.Println("Staff not found.")
 		return
 	}
 
