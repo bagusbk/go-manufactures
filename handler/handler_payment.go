@@ -5,19 +5,9 @@ import (
 	"fmt"
 	"log"
 	"manufactures/config"
+	"manufactures/entity"
 	"os"
 )
-
-type PaymentReport struct {
-	UserID        int     `json:"user_id"`
-	FullName      string  `json:"full_name"`
-	Email         string  `json:"email"`
-	PhoneNumber   string  `json:"phone_number"`
-	Amount        float64 `json:"amount"`
-	PaymentDate   string  `json:"payment_date"`
-	PaymentMethod string  `json:"payment_method"`
-	Status        string  `json:"status"`
-}
 
 // Handler untuk laporan pembayaran
 func PrintPaymentReport() {
@@ -32,9 +22,9 @@ func PrintPaymentReport() {
 	}
 	defer rows.Close()
 
-	var reports []PaymentReport
+	var reports []entity.PaymentReport
 	for rows.Next() {
-		var report PaymentReport
+		var report entity.PaymentReport
 		err := rows.Scan(&report.UserID, &report.FullName, &report.Email, &report.PhoneNumber, &report.Amount, &report.PaymentDate, &report.PaymentMethod, &report.Status)
 		if err != nil {
 			fmt.Println("Error scanning row:", err)

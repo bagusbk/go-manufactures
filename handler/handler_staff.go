@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"manufactures/config"
+	"manufactures/entity"
 	"os"
 	"regexp"
 	"strconv"
@@ -25,12 +26,6 @@ func hashPassword(password string) (string, error) {
 func isValidEmail(email string) bool {
 	re := regexp.MustCompile(`^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$`)
 	return re.MatchString(email)
-}
-
-var LoggedInStaff struct {
-	StaffID  int
-	Email    string
-	Position string
 }
 
 func LoginUser() string {
@@ -68,9 +63,9 @@ func LoginUser() string {
 		}
 	}
 
-	LoggedInStaff.StaffID = staffId
-	LoggedInStaff.Email = email
-	LoggedInStaff.Position = position
+	entity.LoggedInStaff.StaffID = staffId
+	entity.LoggedInStaff.Email = email
+	entity.LoggedInStaff.Position = position
 	fmt.Printf("Login successful! Role: %s\n", position)
 	return email
 }
@@ -182,7 +177,7 @@ func DeleteStaff() {
 		return
 	}
 
-	if staffIDToDelete == LoggedInStaff.StaffID {
+	if staffIDToDelete == entity.LoggedInStaff.StaffID {
 		fmt.Println("❌ You cannot delete your own account!")
 		return
 	}
@@ -220,7 +215,7 @@ func UpdateStaffRole() {
 		return
 	}
 
-	if staffID == LoggedInStaff.StaffID {
+	if staffID == entity.LoggedInStaff.StaffID {
 		fmt.Println("❌ You cannot change your own role.")
 		return
 	}

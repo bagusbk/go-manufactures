@@ -5,38 +5,10 @@ import (
 	"fmt"
 	"log"
 	"manufactures/config"
+	"manufactures/entity"
 	"os"
 	"strings"
 )
-
-type OrderReport struct {
-	OrderID     int     `json:"order_id"`
-	UserID      int     `json:"user_id"`
-	FullName    string  `json:"full_name"`
-	OrderDate   string  `json:"order_date"`
-	Status      string  `json:"status"`
-	TotalAmount float64 `json:"total_amount"`
-	StaffID     int     `json:"staff_id"`
-	StaffName   string  `json:"staff_name"`
-}
-
-type OrderItem struct {
-	ItemID   int
-	Quantity int
-	Price    float64
-}
-
-type Order struct {
-	UserID      int
-	TotalAmount float64
-	OrderItems  []OrderItem
-}
-
-type Payment struct {
-	UserID        int
-	Amount        float64
-	PaymentMethod string
-}
 
 // Fungsi untuk mendapatkan input integer dari user
 func getInputInt(reader *bufio.Reader) int {
@@ -76,9 +48,9 @@ func PrintOrderReport() {
 	}
 	defer rows.Close()
 
-	var reports []OrderReport
+	var reports []entity.OrderReport
 	for rows.Next() {
-		var report OrderReport
+		var report entity.OrderReport
 		err := rows.Scan(&report.OrderID, &report.UserID, &report.FullName, &report.OrderDate, &report.Status, &report.TotalAmount, &report.StaffID, &report.StaffName)
 		if err != nil {
 			fmt.Println("Error scanning row:", err)
@@ -89,7 +61,7 @@ func PrintOrderReport() {
 
 	fmt.Println("Order Report:")
 	for _, report := range reports {
-		fmt.Printf("OrderID: %d | UserID: %d | Full Name User: %s | OrderDate: %s | Status: %s | TotalAmount: %.2f | Staff Name: %s\n",
+		fmt.Printf("OrderID: %d | UserID: %d | Full Name User: %s | Order Date: %s | Status: %s | Total Amount: %.2f | Staff Name: %s\n",
 			report.OrderID, report.UserID, report.FullName, report.OrderDate, report.Status, report.TotalAmount, report.StaffName)
 	}
 }
@@ -99,10 +71,10 @@ func CreateOrder() {
 	fmt.Print("Enter user ID: ")
 	userID := getInputInt(reader)
 
-	var orderItems []OrderItem
+	var orderItems []entity.OrderItem
 	var totalAmount float64
 
-	staffID := LoggedInStaff.StaffID
+	staffID := entity.LoggedInStaff.StaffID
 	var count int
 	err := config.InitDB().QueryRow("SELECT COUNT(*) FROM staff WHERE staff_id = ?", staffID).Scan(&count)
 	if err != nil || count == 0 {
@@ -140,7 +112,7 @@ func CreateOrder() {
 		}
 
 		// Hitung total harga untuk item ini
-		orderItem := OrderItem{
+		orderItem := entity.OrderItem{
 			ItemID:   itemID,
 			Quantity: quantity,
 			Price:    price,
