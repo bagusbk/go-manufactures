@@ -8,6 +8,7 @@ import (
 	"manufactures/entity"
 	"os"
 	"strings"
+	"time"
 )
 
 // Fungsi untuk mendapatkan input integer dari user
@@ -32,6 +33,12 @@ func getInputFloat(reader *bufio.Reader) float64 {
 	var result float64
 	fmt.Sscanf(input, "%f", &result)
 	return result
+}
+
+func readInput() string {
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()        // Membaca input
+	return scanner.Text() // Mengembalikan input sebagai string
 }
 
 // Handler untuk laporan pesanan
@@ -179,4 +186,58 @@ func CreateOrder() {
 	}
 
 	fmt.Println("Order created successfully! Order ID:", orderID)
+}
+
+func PrintOrderDetailsByDateRange() {
+	// Input tanggal dari pengguna
+	fmt.Println("Masukkan tanggal mulai (YYYY-MM-DD):")
+	startDate := readInput()
+
+	fmt.Println("Masukkan tanggal akhir (YYYY-MM-DD):")
+	endDate := readInput()
+
+	// Parse tanggal yang diterima untuk query
+	start, err := time.Parse("2006-01-02", startDate)
+	if err != nil {
+		log.Println("Tanggal mulai tidak valid:", err)
+		return
+	}
+	end, err := time.Parse("2006-01-02", endDate)
+	if err != nil {
+		log.Println("Tanggal akhir tidak valid:", err)
+		return
+	}
+
+	// Inisialisasi koneksi ke database dan eksekusi query
+	rows, err := config.InitDB().Query(`
+		SELECT o.order_id, o.order_date, u.full_name, o.total_amount, o.status
+		FROM orders o
+		JOIN users u ON o.user_id = u.user_id
+		WHERE o.order_date BETWEEN ? AND ?
+		ORDER BY o.order_date DESC
+	`, start, end)
+	if err != nil {
+		fmt.Println("Error retrieving orders:", err)
+		return
+	}
+	defer rows.Close()
+
+	// Menampung hasil query dalam slice
+	var reports []entity.OrderReport
+	for rows.Next() {
+		var report entity.OrderReport
+		err := rows.Scan(&report.OrderID, &report.OrderDate, &report.FullName, &report.TotalAmount, &report.Status)
+		if err != nil {
+			fmt.Println("Error scanning row:", err)
+			return
+		}
+		reports = append(reports, report)
+	}
+
+	// Menampilkan hasil laporan
+	fmt.Printf("Laporan Pesanan dari %s sampai %s:\n", startDate, endDate)
+	for _, report := range reports {
+		fmt.Printf("OrderID: %d | User: %s | Order Date: %s | Total Amount: %.2f | Status: %s\n",
+			report.OrderID, report.FullName, report.OrderDate, report.TotalAmount, report.Status)
+	}
 }

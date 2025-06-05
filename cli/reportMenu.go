@@ -18,7 +18,7 @@ func showReportMenu() {
 
 	fmt.Println("-- Reports --")
 	fmt.Println("1. Report User Pembelian Terbanyak")
-	fmt.Println("2. Report Pesanan")
+	fmt.Println("2. Report Pesanan Range Date")
 	fmt.Println("3. Report Barang Terjual")
 	fmt.Println("7. Back to Main Menu")
 	fmt.Print("Choose an option: ")
@@ -30,7 +30,7 @@ func showReportMenu() {
 		// handler.PrintItemReport()
 		handler.PrintFrequentBuyersReport()
 	} else if input == "2" {
-		handler.PrintOrderReport()
+		handler.PrintOrderDetailsByDateRange()
 	} else if input == "3" {
 		handler.PrintMostSoldItemsReport()
 	} else if input == "7" {
