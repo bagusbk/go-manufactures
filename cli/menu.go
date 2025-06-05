@@ -13,7 +13,7 @@ func ShowMenu() {
 	for {
 		if handler.LoggedInStaff.Email == "" {
 			fmt.Println("============================")
-			fmt.Println("Welcome to ManufactureStore CLI")
+			fmt.Println("Welcome to Uniclever")
 			fmt.Println("============================")
 			fmt.Println("1. Login")
 			fmt.Println("2. Exit")
